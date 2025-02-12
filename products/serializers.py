@@ -28,19 +28,21 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     reviews = ReviewSerializer(many=True, read_only=True)
+
     class Meta:
         exclude = ['created_at', 'updated_at', 'tags'] 
         model = Product
 
 class CartSerializer(serializers.ModelSerializer):
     products = ProductSerializer(many=True, read_only=True)
+    product_ids = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), many=True)
     
     class Meta:
         model = Cart
-        fields = ['user', 'products']
+        fields = ['user', 'products', 'product_ids']
 
 #eseigi vamowmebt arsebobs tu ara produqti ofc
-    def validate_product_id(self, value):
+    def validate_product_ids(self, value):
         if not Product.objects.filter(id=value).exists():
             raise serializers.ValidationError("Invalid product_id. Product does not exist.")
         return value
