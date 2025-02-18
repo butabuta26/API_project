@@ -104,3 +104,8 @@ class CartSerializer(serializers.ModelSerializer):
         cart.products.add(*products)
         
         return cart
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ['id', 'image', 'product']
