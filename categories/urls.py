@@ -1,9 +1,21 @@
-from django.urls import path
-from .views import CategoryListView, CategroryDetailView, CategoryImageViewSet
+from django.urls import path, include
+from .views import CategoryViewSet, CategroryDetailViewSet, CategoryImageViewSet
+from rest_framework.routers import SimpleRouter, DefaultRouter
+from rest_framework_nested import routers
+
+router = DefaultRouter()
+router.register('categories',CategoryViewSet)
+
+categories_router = routers.NestedDefaultRouter(
+    router,
+    'categories',
+    lookup='category'
+)
+
+categories_router.register('details', CategroryDetailViewSet)
+categories_router.register('images', CategoryImageViewSet)
 
 urlpatterns = [
-    path('categories/', CategoryListView.as_view(), name='categroies'),
-    path('categories/<int:pk>/', CategroryDetailView.as_view(), name='categories'),
-    path('categories/<int:category_id>/images/', CategoryImageViewSet.as_view({'get': 'list', 'post': 'create'}), name='categories'),
-    path('categories/<int:category_id>/images/<int:pk>/', CategoryImageViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'}), name='category')
+    path('', include(router.urls)),
+    path('', include(categories_router.urls)),
 ]

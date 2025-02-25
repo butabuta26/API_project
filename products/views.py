@@ -12,11 +12,9 @@ from .models import Cart, ProductTag, FavoriteProduct, Product, Review, ProductI
 from .serializers import (CartSerializer, ProductTagSerializer,
                           FavoriteProductSerializer, ProductSerializer, ReviewSerializer, ProductImageSerializer)
 
-class ProductViewSet(ModelViewSet):
+class ProductViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    
-    
+    serializer_class = ProductSerializer  
     
 class ReviewViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
     queryset = Review.objects.all()
@@ -26,7 +24,7 @@ class ReviewViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
     def get_queryset(self):
         return self.queryset.filter(product_id=self.kwargs['product_pk'])
     
-class FavoriteProductViewSet(ModelViewSet):
+class FavoriteProductViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
     serializer_class = FavoriteProductSerializer
     queryset = FavoriteProduct.objects.all()
     permission_classes = [IsAuthenticated]
@@ -51,12 +49,12 @@ class CartViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
     
-class ProductTagViewSet(ModelViewSet):
+class ProductTagViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
     serializer_class = ProductTagSerializer
     queryset = ProductTag.objects.all()
     permission_classes = [IsAuthenticated]
     
-class ProductImageViewSet(ModelViewSet):
+class ProductImageViewSet(ListModelMixin, CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = ProductImage.objects.all()
     serializer_class = ProductImageSerializer
     permission_classes = [IsAuthenticated]

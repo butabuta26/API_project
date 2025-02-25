@@ -1,22 +1,23 @@
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin
 from rest_framework.generics import GenericAPIView, ListAPIView, ListCreateAPIView, RetrieveAPIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin
+
 from .models import Category, CategoryImage
 from .serializers import CategoryDetailSerializer, CategoryImageSerializer, CategorySerializer
 
-class CategoryListView(ListAPIView):
+class CategoryViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated]
     
-class CategroryDetailView(RetrieveAPIView):
+class CategroryDetailViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategoryDetailSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]   
     
-    
-class CategoryImageViewSet(ModelViewSet):
+class CategoryImageViewSet(ListModelMixin, CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = CategoryImage.objects.all()
     serializer_class = CategoryImageSerializer
     permission_classes = [IsAuthenticated]
