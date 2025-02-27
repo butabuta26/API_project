@@ -12,14 +12,24 @@ from .models import Cart, ProductTag, FavoriteProduct, Product, Review, ProductI
 from .serializers import (CartSerializer, ProductTagSerializer,
                           FavoriteProductSerializer, ProductSerializer, ReviewSerializer, ProductImageSerializer)
 
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
+from .pagination import ProductPagination
+
 class ProductViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer  
+    serializer_class = ProductSerializer 
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    pagination_class = ProductPagination
+    filterset_fields = ['price', 'categories__name']
+    search_fields = ['name', 'description']
     
 class ReviewViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['rating']
     
     def get_queryset(self):
         return self.queryset.filter(product_id=self.kwargs['product_pk'])

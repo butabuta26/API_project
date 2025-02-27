@@ -7,10 +7,15 @@ from rest_framework.mixins import CreateModelMixin, ListModelMixin, UpdateModelM
 from .models import Category, CategoryImage
 from .serializers import CategoryDetailSerializer, CategoryImageSerializer, CategorySerializer
 
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
+
 class CategoryViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name']
     
 class CategroryDetailViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
     queryset = Category.objects.all()
