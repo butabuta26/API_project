@@ -8,9 +8,9 @@ from rest_framework.mixins import CreateModelMixin, ListModelMixin, UpdateModelM
 
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Cart, ProductTag, FavoriteProduct, Product, Review, ProductImage
+from .models import Cart, ProductTag, FavoriteProduct, Product, Review, ProductImage, CartItem
 from .serializers import (CartSerializer, ProductTagSerializer,
-                          FavoriteProductSerializer, ProductSerializer, ReviewSerializer, ProductImageSerializer)
+                          FavoriteProductSerializer, ProductSerializer, ReviewSerializer, ProductImageSerializer, CartItemSerializer)
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
@@ -49,7 +49,7 @@ class ReviewViewSet(ModelViewSet):
     def perform_destroy(self, instance):
         if instance.user != self.request.user:
             raise PermissionDenied("You can't delete this review")
-        instance.destroy()
+        instance.delete()
     
 class FavoriteProductViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
     serializer_class = FavoriteProductSerializer
@@ -75,6 +75,25 @@ class CartViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
+    
+class CartItemViewSet(ModelViewSet):
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(cart__user=self.request.user)
+
+    def perform_destroy(self, instance):
+        if instance.cart.user != self.request.user:
+            raise PermissionDenied("You do not have permission to delete this review.")
+        instance.delete()
+
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        if instance.cart.user != self.request.user:
+            raise PermissionDenied("You do not have permission to update this item.")
+        serializer.save()
     
 class ProductTagViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
     serializer_class = ProductTagSerializer

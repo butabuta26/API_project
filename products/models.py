@@ -22,7 +22,9 @@ class Review(TimeStampModel, models.Model):
     rating = models.PositiveIntegerField(validators=[MaxValueValidator(5)])
     
     class Meta:
-        unique_together = ['product', 'user']
+        constraints = [
+            models.UniqueConstraint(fields=['product', 'user'], name='unique_user_review')
+        ]
 
 
 class FavoriteProduct(TimeStampModel, models.Model):
@@ -53,6 +55,6 @@ class CartItem(TimeStampModel, models.Model):
     def __str__(self):
         return f'{self.product.name} - {self.quantity}'
     
-    def totoal_price(self):
-        return self.quantity + self.price_at_time_of_addition
+    def total_price(self):
+        return self.quantity * self.price_at_time_of_addition
     
