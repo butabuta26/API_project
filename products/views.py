@@ -19,11 +19,14 @@ from .pagination import ProductPagination
 from products.filters import ProductFilter, ReviewFilter
 from rest_framework.exceptions import PermissionDenied
 
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle, ScopedRateThrottle
+
 class ProductViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer 
     filter_backends = [DjangoFilterBackend, SearchFilter]
     pagination_class = ProductPagination
+    throttle_classes = [UserRateThrottle]
     # filterset_fields = ['price', 'categories__name']
     filterset_class = ProductFilter
     search_fields = ['name', 'description']
@@ -56,6 +59,8 @@ class FavoriteProductViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
     queryset = FavoriteProduct.objects.all()
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'delete']
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'likes'
     
     def get_queryset(self):
         queryset = self.queryset.filter(user=self.request.user)
