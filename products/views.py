@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin
-
+from .permissions import IsObjectOwnerReadOnly
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Cart, ProductTag, FavoriteProduct, Product, Review, ProductImage, CartItem
@@ -34,25 +34,24 @@ class ProductViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, Retriev
 class ReviewViewSet(ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsObjectOwnerReadOnly]
     filter_backends = [DjangoFilterBackend]
-    # filterset_fields = ['rating']
     filterset_class = ReviewFilter
     
     def get_queryset(self):
         return self.queryset.filter(product_id=self.kwargs['product_pk'])
     
-    def perform_update(self, serializer):
-        review = self.get_object()
-        print(review.user, self.request.user, "-"*10)
-        if review.user != self.request.user:
-            raise PermissionDenied("You can't change this review")
-        serializer.save()
+    # def perform_update(self, serializer):
+    #     review = self.get_object()
+    #     print(review.user, self.request.user, "-"*10)
+    #     if review.user != self.request.user:
+    #         raise PermissionDenied("You can't change this review")
+    #     serializer.save()
         
-    def perform_destroy(self, instance):
-        if instance.user != self.request.user:
-            raise PermissionDenied("You can't delete this review")
-        instance.delete()
+    # def perform_destroy(self, instance):
+    #     if instance.user != self.request.user:
+    #         raise PermissionDenied("You can't delete this review")
+    #     instance.delete()
     
 class FavoriteProductViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
     serializer_class = FavoriteProductSerializer
