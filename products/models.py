@@ -4,6 +4,8 @@ from config.model_utils.models import TimeStampModel
 from products.choices import Currency
 
 class Product(TimeStampModel, models.Model):
+    user = models.ForeignKey('users.User', related_name='products', on_delete=models.CASCADE, null=True, blank=True)
+
     name = models.CharField(max_length=255)
     description = models.TextField()
     price = models.FloatField()
