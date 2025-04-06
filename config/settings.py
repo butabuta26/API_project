@@ -163,3 +163,16 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_POST = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'tsiklaurianastasia2009@gmail.com'
+EMAIL_HOST_PASSWORD = 'hgdu uuut kwbn azdq'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
