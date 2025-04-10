@@ -12,6 +12,9 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.utils import timezone
+from .models import EmailVerificationCode
+import random
 
 User = get_user_model()
 
@@ -24,6 +27,28 @@ class RegisterViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            self.send_verification_code(user)
+            return response.Response(
+                {'detail': 'User registered successfully and verification code sent to email'},
+                status=status.HTTP_201_CREATED
+            )
+        return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+      
+    def send_verification_code(self, user):
+        code = str(random.randint(100000, 999999))
+        
+        EmailVerificationCode.objects.update_or_create(
+            user=user,
+            defaults={'code':code, 'created_at': timezone.now()}
+        )
+        subject = 'Your verification code'
+        message = f'Hello {user.username}, your verification code is {code}'
+        send_mail(subject, message, 'no-reply@example.com', [user.email])
+           
 class ResetPasswordViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = PasswordResetSerializer
     
@@ -36,7 +61,7 @@ class ResetPasswordViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             
-            reset_url = request.build_absolute_url(
+            reset_url = request.build_absolute_uri(
                 reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
             )
             # reset_url = f'http://127.0.0.1:8000/reset_password_confirm/{uid}/{token}/'
@@ -66,5 +91,5 @@ class ResetPasswordConfirmViewSet(mixins.CreateModelMixin, viewsets.GenericViewS
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return response.Response({'message': 'Password changes successfully'}, status=status.HTTP_200_OK)
+            return response.Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
         return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

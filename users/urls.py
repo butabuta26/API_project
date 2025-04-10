@@ -10,5 +10,7 @@ router.register('reset_password', ResetPasswordViewSet, basename='reset_password
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('password_reset_confirm/<uidb64>/<token>', ResetPasswordConfirmViewSet.as_view({'post': 'create'}), name='reset_password_confirm')
+    path('password_reset_confirm/<uidb64>/<token>', 
+         ResetPasswordConfirmViewSet.as_view({'post': 'create'}), 
+         name='password_reset_confirm')
 ]
