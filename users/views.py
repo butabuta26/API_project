@@ -1,6 +1,7 @@
 from rest_framework import mixins, viewsets, response
 # from .models import User
-from .serializers import UserSerializer, RegisterSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer
+from .serializers import (UserSerializer, RegisterSerializer, PasswordResetSerializer, 
+                          PasswordResetConfirmSerializer, EmailCodeSendSerializer, EmailCodeConfirmSerializer)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -15,6 +16,8 @@ from drf_yasg import openapi
 from django.utils import timezone
 from .models import EmailVerificationCode
 import random
+from rest_framework.decorators import action
+from datetime import timedelta
 
 User = get_user_model()
 
@@ -48,6 +51,32 @@ class RegisterViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         subject = 'Your verification code'
         message = f'Hello {user.username}, your verification code is {code}'
         send_mail(subject, message, 'no-reply@example.com', [user.email])
+        
+    @action(detail=False, methods=['post'], url_path='resend_code', serializer_class=EmailCodeSendSerializer)
+    def resend_code(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if not serializer.is_valid():
+            return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = serializer.validated_data['user']
+        existing_code = EmailVerificationCode.objects.filter(user=user).first()
+        if existing_code:
+            time_diff = timezone.now() - existing_code.created_at
+            if time_diff < timedelta(minutes=1):
+                wait_seconds = 60 - int(time_diff.total_seconds())
+                return response.Response({'detail': f'wait for {wait_seconds} seconds to resend the code'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+            self.send_verification_code(user)
+            return response.Response({'message': 'verification code was resent'})
+        
+    @action(detail=False, methods=['post'], url_path='confrm_code', serializer_class=EmailCodeConfirmSerializer)
+    def confirm_code(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            user.is_active = True
+            user.save()
+            return response.Response({'message': 'User successfully activated'}, status=status.HTTP_200_OK)
+        return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
            
 class ResetPasswordViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = PasswordResetSerializer
@@ -93,3 +122,4 @@ class ResetPasswordConfirmViewSet(mixins.CreateModelMixin, viewsets.GenericViewS
             serializer.save()
             return response.Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
         return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
