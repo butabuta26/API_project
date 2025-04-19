@@ -174,5 +174,5 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_POST = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'tsiklaurianastasia2009@gmail.com'
-EMAIL_HOST_PASSWORD = 'hgdu uuut kwbn azdq'
+EMAIL_HOST_PASSWORD = 'tzgo ursv hepm vrrr'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
