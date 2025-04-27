@@ -176,3 +176,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'tsiklaurianastasia2009@gmail.com'
 EMAIL_HOST_PASSWORD = 'tzgo ursv hepm vrrr'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
