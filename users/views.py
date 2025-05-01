@@ -18,6 +18,7 @@ from .models import EmailVerificationCode
 import random
 from rest_framework.decorators import action
 from datetime import timedelta
+from config.celery import app
 
 User = get_user_model()
 
@@ -50,7 +51,9 @@ class RegisterViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         )
         subject = 'Your verification code'
         message = f'Hello {user.username}, your verification code is {code}'
-        send_mail(subject, message, 'no-reply@example.com', [user.email])
+        # send_mail(subject, message, 'no-reply@example.com', [user.email])
+        
+        app.send_task('users.tasks.send_email_async',args=[subject, message, user.email])
         
     @action(detail=False, methods=['post'], url_path='resend_code', serializer_class=EmailCodeSendSerializer)
     def resend_code(self, request):
@@ -67,7 +70,7 @@ class RegisterViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             self.send_verification_code(user)
             return response.Response({'message': 'verification code was resent'})
         
-    @action(detail=False, methods=['post'], url_path='confrm_code', serializer_class=EmailCodeConfirmSerializer)
+    @action(detail=False, methods=['post'], url_path='confirm_code', serializer_class=EmailCodeConfirmSerializer)
     def confirm_code(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -94,14 +97,17 @@ class ResetPasswordViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
                 reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
             )
             # reset_url = f'http://127.0.0.1:8000/reset_password_confirm/{uid}/{token}/'
+            subject = 'reset password'
+            message = f'press the link to reset your password: {reset_url}'
+            app.send_task('users.tasks.send_email_async',args=[subject, message, user.email])
             
-            send_mail(
-                'პაროლის აღდგენა',
-                f'დააჭირე ბმულს, რომ აღადგინო პაროლი: {reset_url}',
-                'noreply@example.com',
-                [user.email],
-                fail_silently=False
-            )
+            # send_mail(
+            #     'პაროლის აღდგენა',
+            #     f'დააჭირე ბმულს, რომ აღადგინო პაროლი: {reset_url}',
+            #     'noreply@example.com',
+            #     [user.email],
+            #     fail_silently=False
+            # )
             
             return Response({'message: წერილი წარმატებით არის გაგზავნილი'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
