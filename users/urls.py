@@ -5,7 +5,7 @@ from rest_framework_nested import routers
 
 router = DefaultRouter()
 router.register('users', UserViewSet, basename='urls')
-router.register('register', RegisterViewSet)
+router.register('register', RegisterViewSet, basename='register')
 router.register('reset_password', ResetPasswordViewSet, basename='reset_password')
 
 urlpatterns = [
