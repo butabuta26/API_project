@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
+import os
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -48,8 +51,11 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
 ]
 
+STATICFILESSTORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -88,6 +94,15 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# 'default': {
+#            'ENGINE': 'django.db.backends.postgresql',
+#            'NAME': '',
+#            'USER': 'your_username',
+#            'PASSWORD': 'your_password',
+#            'HOST': 'localhost',
+#            'PORT': '5432',
+#        }
 
 
 # Password validation
@@ -147,6 +162,16 @@ REST_FRAMEWORK = {
     )
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis:6379/1", 
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
     'django.contrib.auth.hashers.Argon2PasswordHasher',
@@ -164,8 +189,6 @@ SWAGGER_SETTINGS = {
     }
 }
 
-import os
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -177,5 +200,5 @@ EMAIL_HOST_USER = 'tsiklaurianastasia2009@gmail.com'
 EMAIL_HOST_PASSWORD = 'tzgo ursv hepm vrrr'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'

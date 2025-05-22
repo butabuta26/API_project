@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+    web:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - "8000:8000"
+        volumes:
+            - ./media:/app/media
+        depends_on:
+            - redis
+        networks:
+            - app_network
+
+    redis:
+        image: redis:7
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_data:/data
+        networks:
+            - app_network
+    
+
+    db:
+        image: postgres:14.1-alpine
+        restart: always
+        environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=postgres
+        ports:
+        - '5432:5432'
+        volumes: 
+        - db:/var/lib/postgresql/data   
+
+networks:
+    app_network:
+        driver: bridge
+
+volumes:
+    redis_data:
+    db:
+        driver: local
